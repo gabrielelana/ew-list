@@ -1,48 +1,26 @@
 defmodule EwList do
 
   @spec count(list) :: non_neg_integer
-  def count([]), do: 0
-  def count([_|l]), do: 1 + count(l)
-
+  def count(l), do: reduce(l, 0, fn(_, c) -> c + 1 end)
 
   @spec reverse(list) :: list
-  def reverse(l), do: do_reverse(l, [])
-
-  defp do_reverse([], r), do: r
-  defp do_reverse([h|t], r), do: do_reverse(t, [h|r])
-
+  def reverse(l), do: reduce(l, [], &[&1|&2])
 
   @spec map(list, (any -> any)) :: list
-  def map(l, f), do: do_map(l, f, [])
-
-  defp do_map([], _, r), do: reverse(r)
-  defp do_map([h|t], f, r), do: do_map(t, f, [f.(h)|r])
-
+  def map(l, f), do: reduce(l, [], &[f.(&1)|&2]) |> reverse
 
   @spec filter(list, (any -> boolean)) :: list
-  def filter(l, f), do: do_filter(l, f, [])
+  def filter(l, f), do: reduce(l, [], &(if f.(&1), do: [&1|&2], else: &2)) |> reverse
 
-  defp do_filter([], _, r), do: reverse(r)
-  defp do_filter([h|t], f, r), do: do_filter(t, f, (if f.(h), do: [h|r], else: r))
+  @spec append(list, list) :: list
+  def append(l1, l2), do: reduce(reverse(l1), l2, &[&1|&2])
 
+  @spec concat([[any]]) :: [any]
+  def concat(ll), do: reduce(reverse(ll), [], &append/2)
 
   @spec reduce(list, acc, ((any, acc) -> acc)) :: acc when acc: any
   def reduce([], acc, _), do: acc
   def reduce([h|t], acc, f), do: reduce(t, f.(h, acc), f)
-
-
-  @spec append(list, list) :: list
-  def append(l1, l2), do: do_append(reverse(l1), l2)
-
-  defp do_append([], l2), do: l2
-  defp do_append([h|t1], t2), do: do_append(t1, [h|t2])
-
-
-  @spec concat([[any]]) :: [any]
-  def concat(ll), do: do_concat(reverse(ll), [])
-
-  defp do_concat([], r), do: r
-  defp do_concat([h|t], r), do: do_concat(t, append(h, r))
 end
 
 
